@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.security.auth.login.LoginException;
 import java.util.*;
 
-public class Bot extends ListenerAdapter {
+public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
     public static String prefix = "!"; // Bot's prefix for commands :D
 
     public static void main(String[] args) throws LoginException {
@@ -31,18 +31,23 @@ public class Bot extends ListenerAdapter {
         }
 
         Guild g = jda.getGuildById("964587882771791985");
-        g.upsertCommand("ping", "Calculate ping of the bot").queue(); // This can take up to 1 hour to show up in the client
+        g.upsertCommand("ping", "Calculate ping of the bot").queue();
+        g.upsertCommand("add", "DM string in certain amount of milliseconds").queue();
     }
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event)
-    {
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
-        if (!event.getName().equals("ping")) return; // make sure we handle the right command
-        long time = System.currentTimeMillis();
-        event.reply("Pong!").setEphemeral(true) // reply or acknowledge
-                .flatMap(v ->
-                        event.getHook().editOriginalFormat("Pong: %d ms", System.currentTimeMillis() - time) // then edit original
-                ).queue(); // Queue both reply and edit
+        if (event.getName().equals("ping")) { // make sure we handle the right command
+            long time = System.currentTimeMillis();
+            event.reply("Pong!").setEphemeral(true) // reply or acknowledge
+                    .flatMap(v ->
+                            event.getHook().editOriginalFormat("Pong: %d ms", System.currentTimeMillis() - time) // then edit original
+                    ).queue(); // Queue both reply and edit
+        }
+        if (event.getName().equals("add")) {
+            long time = System.currentTimeMillis(); //add a new task with this user and the current time + the time specified, possibly need to do stuff with slashcommandarguments.
+
+        }
     }
 }
