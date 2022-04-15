@@ -1,6 +1,7 @@
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -17,12 +18,20 @@ public class Bot extends ListenerAdapter {
         }
         // args[0] should be the token
         // We don't need any intents for this bot. Slash commands work without any intents!
-        JDA jda = JDABuilder.createLight("OTY0NTc4OTcwNDc5Nzc5ODkw.YlmsKw.d-d73EizppvbCJ1N0j5nyw2uEd0", Collections.emptyList())
+        JDA jda = JDABuilder.createLight(args[0], Collections.emptyList())
                 .addEventListeners(new Bot())
                 .setActivity(Activity.playing("Type /ping"))
                 .build();
 
-        jda.upsertCommand("ping", "Calculate ping of the bot").queue(); // This can take up to 1 hour to show up in the client
+        // Just making sure that guild runs at the right time
+        try {
+            jda.awaitReady();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Guild g = jda.getGuildById("964587882771791985");
+        g.upsertCommand("ping", "Calculate ping of the bot").queue(); // This can take up to 1 hour to show up in the client
     }
 
     @Override
