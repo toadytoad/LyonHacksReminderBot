@@ -28,7 +28,7 @@ public class Task extends Thread { //TODO implement comparable based on time.
 
     synchronized void ping() throws InterruptedException {
         this.wait(time);
-        channel.getChannel().sendMessage("Trolling again. Here to remind you about " + text + " :D").queue();
+        user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Trolling :clown:. Here to remind you about " + text)).queue();
     }
 
     public void run() {
