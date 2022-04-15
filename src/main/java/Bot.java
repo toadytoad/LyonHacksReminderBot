@@ -52,8 +52,9 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-            tasks.add(new Task(message[1], System.currentTimeMillis() + Long.parseLong(message[2]), e.getAuthor()));
-            e.getChannel().sendMessage("I'll remind you about \"" + tasks.get(tasks.size()-1).getText() + "\" at " + tasks.get(tasks.size()-1).getTime() + " (trolling, i can't remind anyone about anything yet :dying:)").queue();
+            tasks.add(new Task(message[1], Long.parseLong(message[2]), e.getAuthor(), e));
+            e.getChannel().sendMessage("I'll remind you about \"" + tasks.get(tasks.size()-1).getText() + "\" in " + tasks.get(tasks.size()-1).getTime() + " (trolling, i can't remind anyone about anything yet :dying:)").queue();
+            tasks.get(tasks.size()-1).start();
         }
     }
 }
