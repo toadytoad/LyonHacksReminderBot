@@ -17,7 +17,7 @@ public class Bot extends ListenerAdapter {
         }
         // args[0] should be the token
         // We don't need any intents for this bot. Slash commands work without any intents!
-        JDA jda = JDABuilder.createLight(args[0], Collections.emptyList())
+        JDA jda = JDABuilder.createLight("OTY0NTc4OTcwNDc5Nzc5ODkw.YlmsKw.d-d73EizppvbCJ1N0j5nyw2uEd0", Collections.emptyList())
                 .addEventListeners(new Bot())
                 .setActivity(Activity.playing("Type /ping"))
                 .build();
