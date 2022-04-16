@@ -58,24 +58,20 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
 
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
-        String[] message = e.getMessage().getContentRaw().trim().split(" ");
+        String[] message = e.getMessage().getContentRaw().trim().split(",");
 
         if(message[0].equals("!add")) {
             try {
-                if(message.length < 3) {
-                    e.getChannel().sendMessage("Invalid format!").queue();
-                } else {
-                    String[] temp = message[2].split(":");
-                    Integer.parseInt(temp[0]);
-                    Integer.parseInt(temp[1]);
+                String[] temp = message[2].trim().split(":");
+                Integer.parseInt(temp[0]);
+                Integer.parseInt(temp[1]);
 
-                    if (convertTime(message[2]) < 0) {
-                        e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
-                    } else {
-                        tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
-                        e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
-                        tasks.get(tasks.size() - 1).start();
-                    }
+                if (convertTime(message[2]) < 0) {
+                    e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
+                } else {
+                    tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
+                    e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
+                    tasks.get(tasks.size() - 1).start();
                 }
             } catch(NumberFormatException x) {
                 e.getChannel().sendMessage("Please enter a proper time in 24 hour format").queue();
@@ -100,7 +96,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         long mins1 = Long.parseLong(t1[1]) * 60000;
         long secs1 = Long.parseLong(t1[2]) * 1000;
 
-        String[] t2 = time.split(":");
+        String[] t2 = time.trim().split(":");
 
         long hours2 = Long.parseLong(t2[0]) * 360000;
         long mins2 = Long.parseLong(t2[1]) * 60000;
