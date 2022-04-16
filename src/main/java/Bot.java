@@ -12,7 +12,7 @@ import javax.security.auth.login.LoginException;
 import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
-    public static PriorityQueue<Task> taskQueue = new PriorityQueue<>();
+    static Thread t = new Thread(TaskListener.t);
 
     public static void main(String[] args) throws LoginException {
         if (args.length < 1) {
@@ -39,6 +39,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         Guild g = jda.getGuildById("964587882771791985");
         g.upsertCommand("ping", "Calculate ping of the bot").queue();
         g.upsertCommand("add", "DM string in certain amount of milliseconds").queue();
+        t.start();
     }
 
     @Override
@@ -58,7 +59,22 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-
+            if(message.length<3){
+                //get mad
+            } else {
+                StringBuilder text = new StringBuilder();
+                for(int i = 2; i<message.length; i++){
+                    text.append(message[i]).append(" ");
+                }
+                try {
+                    Task toAdd = new Task(text.toString().trim(), System.currentTimeMillis()+Long.parseLong(message[1]), e.getMember().getUser(), e);
+                    TaskListener.t.add(toAdd);
+                } catch (NumberFormatException ex) {
+                    //get mad about bad number
+                } catch (NullPointerException ex) {
+                    //get mad about bad user
+                }
+            }
         } else if(message[0].equals("!list")) {
 
         }
