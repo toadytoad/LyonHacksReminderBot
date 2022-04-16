@@ -2,64 +2,44 @@ import java.util.PriorityQueue;
 
 public class TaskListener extends Thread {
     static TaskListener t = new TaskListener();
-    public static PriorityQueue<Task> taskQueue = new PriorityQueue<>();
-    public Thread ti;
+    static PriorityQueue<Task> taskQueue = new PriorityQueue<>();
 
     private TaskListener() {
-
-    }
-
-    public TaskListener getTaskListener() {
-        return t;
     }
 
     public synchronized void run() {
-        System.out.println("Started listening!");
-        for(;;){
-            try {
-                wait();
-            } catch (InterruptedException ignored) {}
-            System.out.println("Invoked!");
-            invoke();
-        }
-    }
+        System.out.println("Running!");
+        for (; ; ) {
+            System.out.println("Checking next task!");
+            Task next = taskQueue.peek();
+            if (next == null) {
+                try {
+                    System.out.println("Waiting for new task...");
+                    wait();
+                } catch (InterruptedException ignored) {
+                }
+                continue;
+            }
+            System.out.println("Not a null task!");
+            long time = System.currentTimeMillis();
 
-    public synchronized void invoke() {
-        try {
-            ti.interrupt();
-        } catch (NullPointerException ignored) {}
-        Task next = taskQueue.peek();
-        if (next == null) return;
-        long time = System.currentTimeMillis();
-        if (next.time <= time) {
-            next.user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Trolling :clown:. Here to remind you about " + next.text)).queue();
-            taskQueue.poll();
-        } else {
-            System.out.println("Starting a new invoker");
-            ti = new Thread(new TaskInvoker(next.time-time));
-            ti.start();
-        }
-    }
-    public synchronized void add(Task task) {
-        taskQueue.add(task);
-        t.notify();
-    }
+            System.out.println("Current time is " + time + "\nTask set to execute at " + next.time);
+            if (next.time <= time) {
+                System.out.println("Going to execute task");
+                next.user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Trolling :clown:. Here to remind you about " + next.text)).queue();
+                System.out.println("Executed task");
+                taskQueue.poll();
+                System.out.println("Removed from queue");
+            } else {
+                System.out.println("It is not time yet to execute");
+                try {
+                    System.out.println("Going to wait");
+                    wait(next.time - time);
+                    System.out.println("Finished waiting");
+                } catch (InterruptedException ignored) {
+                }
+            }
 
-
-    public static class TaskInvoker extends Thread {
-        long ms;
-        public TaskInvoker(long ms){
-            this.ms=ms;
         }
-        public synchronized void run() {
-            System.out.println("Task Invoker told to invoke in "+ms);
-            try {
-                Thread.sleep(ms);
-            } catch (InterruptedException ignored) {}
-            System.out.println("Task Invoker Notifying!");
-            System.out.println(t.getName());
-            t.notify();
-        }
-
     }
 }

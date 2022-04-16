@@ -12,7 +12,7 @@ import javax.security.auth.login.LoginException;
 import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
-    static Thread t = new Thread(TaskListener.t);
+    static final Thread t = new Thread(TaskListener.t);
 
     public static void main(String[] args) throws LoginException {
         if (args.length < 1) {
@@ -28,7 +28,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
                 .enableCache(CacheFlag.ONLINE_STATUS)
                 .build();
-
+        //
         // Just making sure that guild runs at the right time
         try {
             jda.awaitReady();
@@ -39,7 +39,9 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         Guild g = jda.getGuildById("964587882771791985");
         g.upsertCommand("ping", "Calculate ping of the bot").queue();
         g.upsertCommand("add", "DM string in certain amount of milliseconds").queue();
+        System.out.println(Thread.currentThread().getName());
         t.start();
+
     }
 
     @Override
@@ -57,7 +59,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
-
+        System.out.println(Thread.currentThread().getName());
         if(message[0].equals("!add")) {
             if(message.length<3){
                 //get mad
@@ -67,8 +69,15 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     text.append(message[i]).append(" ");
                 }
                 try {
-                    Task toAdd = new Task(text.toString().trim(), System.currentTimeMillis()+Long.parseLong(message[1]), e.getMember().getUser(), e);
-                    TaskListener.t.add(toAdd);
+
+                    Task toAdd = new Task(text.toString().trim(), System.currentTimeMillis() + Long.parseLong(message[1]), e.getMember().getUser(), e);
+
+                    System.out.println("Adding task");
+                    TaskListener.taskQueue.add(toAdd);
+                    System.out.println("Task added to queue");
+                    t.notify();
+                    System.out.println("Notifying!");
+
                 } catch (NumberFormatException ex) {
                     //get mad about bad number
                 } catch (NullPointerException ex) {
