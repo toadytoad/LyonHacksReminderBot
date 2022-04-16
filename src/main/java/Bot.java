@@ -61,9 +61,25 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-            tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
-            e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
-            tasks.get(tasks.size()-1).start();
+            try {
+                if(message.length < 3) {
+                    e.getChannel().sendMessage("Invalid format!").queue();
+                } else {
+                    String[] temp = message[2].split(":");
+                    Integer.parseInt(temp[0]);
+                    Integer.parseInt(temp[1]);
+
+                    if (convertTime(message[2]) < 0) {
+                        e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
+                    } else {
+                        tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
+                        e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
+                        tasks.get(tasks.size() - 1).start();
+                    }
+                }
+            } catch(NumberFormatException x) {
+                e.getChannel().sendMessage("Please enter a proper time in 24 hour format").queue();
+            }
         } else if(message[0].equals("!list")) {
             String list = "";
             for(Task task : tasks) {
