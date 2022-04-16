@@ -1,7 +1,9 @@
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -9,6 +11,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 import javax.security.auth.login.LoginException;
+import java.time.LocalTime;
 import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
@@ -58,13 +61,65 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-            tasks.add(new Task(message[1], Long.parseLong(message[2]), e.getAuthor(), e.getMember(), e));
-            e.getChannel().sendMessage("I'll remind you about \"" + tasks.get(tasks.size()-1).getText() + "\" in " + tasks.get(tasks.size()-1).getTime() + " (trolling, i can't remind anyone about anything yet :dying:)").queue();
+            tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
+            e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
             tasks.get(tasks.size()-1).start();
         } else if(message[0].equals("!list")) {
-            for(int i = 0; i < tasks.size(); i++) {
-
+            String list = "";
+            for(Task task : tasks) {
+                list += "- " + task.text + ", Time: " + task.time + "\n";
             }
+            e.getChannel().sendMessageEmbeds(list(list)).queue();
+        } else if(message[0].equals("!help")) {
+            e.getChannel().sendMessageEmbeds(greeting()).queue();
         }
+    }
+
+    public long convertTime(String time) {
+        String currentTime = "" + LocalTime.now();
+        String[] t1 = currentTime.split(":");
+        t1[2] = t1[2].substring(0, 2);
+
+        long hours1 = Long.parseLong(t1[0]) * 360000;
+        long mins1 = Long.parseLong(t1[1]) * 60000;
+        long secs1 = Long.parseLong(t1[2]) * 1000;
+
+        String[] t2 = time.split(":");
+
+        long hours2 = Long.parseLong(t2[0]) * 360000;
+        long mins2 = Long.parseLong(t2[1]) * 60000;
+
+        return hours2 + mins2 - hours1 - mins1 - secs1;
+    }
+
+    public MessageEmbed greeting() {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.setTitle("Welcome to ReMind!");
+        eb.setAuthor("ReMind");
+        eb.setFooter("Have fun :D");
+        eb.setDescription(
+                "(makeshift description, this will def not be the real description)\n" +
+                "\n" +
+                "Here to help you out with your incurable addiction to Discord by reminding you when to stop using it ;)\n" +
+                "We will be gifting you with a tamagotchi! (Whichhh is currently non-existent :dying:) To keep your beloved pet happy, all you have to do is follow your schedule instead of procrastinating on discord! But if you choose to rebel and waste time on discord, your tamagotchi will get sad :(\n" +
+                "\n" +
+                "**Commands**\n" +
+                "- **!add [task] [time]** - add a task\n" +
+                "- **!list** - lists your tasks in dms\n" +
+                "- **!help** - to print this message again for whatever reason");
+
+        return eb.build();
+    }
+
+    public MessageEmbed list(String list) {
+        EmbedBuilder eb = new EmbedBuilder();
+
+        eb.setTitle("Your tasks");
+        eb.setAuthor("ReMind");
+        eb.setDescription(list);
+        eb.setFooter(":D");
+
+        return eb.build();
     }
 }

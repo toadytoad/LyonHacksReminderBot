@@ -18,21 +18,9 @@ public class Task extends Thread { //TODO implement comparable based on time.
         channel = e;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
     synchronized void ping() throws InterruptedException {
         wait(time);
-        user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Trolling :clown:. Here to remind you about " + text)).queue();
+        user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Hey there! Here to remind you about " + text)).queue();
         wait(60000);
         if(member.getOnlineStatus() == OnlineStatus.ONLINE) {
             user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Oi! Stop trolling. You're still online :rage: Go and do " + text)).queue();
