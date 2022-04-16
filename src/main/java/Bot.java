@@ -12,7 +12,7 @@ import javax.security.auth.login.LoginException;
 import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
-    public static ArrayList<Task> tasks = new ArrayList<Task>();
+    public static PriorityQueue<Task> taskQueue = new PriorityQueue<>();
 
     public static void main(String[] args) throws LoginException {
         if (args.length < 1) {
@@ -58,13 +58,9 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-            tasks.add(new Task(message[1], Long.parseLong(message[2]), e.getAuthor(), e.getMember(), e));
-            e.getChannel().sendMessage("I'll remind you about \"" + tasks.get(tasks.size()-1).getText() + "\" in " + tasks.get(tasks.size()-1).getTime() + " (trolling, i can't remind anyone about anything yet :dying:)").queue();
-            tasks.get(tasks.size()-1).start();
-        } else if(message[0].equals("!list")) {
-            for(int i = 0; i < tasks.size(); i++) {
 
-            }
+        } else if(message[0].equals("!list")) {
+
         }
     }
 }

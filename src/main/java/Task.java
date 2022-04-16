@@ -2,8 +2,9 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
-public class Task extends Thread { //TODO implement comparable based on time.
+public class Task extends Thread implements Comparable<Task>{ //TODO implement comparable based on time.
     String text;
     long time;
     User user;
@@ -45,5 +46,10 @@ public class Task extends Thread { //TODO implement comparable based on time.
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int compareTo(@NotNull Task o) {
+        return Long.compare(this.time, o.time);
     }
 }
