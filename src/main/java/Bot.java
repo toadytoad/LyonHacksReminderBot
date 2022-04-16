@@ -5,6 +5,9 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+
 import javax.security.auth.login.LoginException;
 import java.util.*;
 
@@ -21,6 +24,9 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         JDA jda = JDABuilder.createDefault(args[0])
                 .addEventListeners(new Bot())
                 .setActivity(Activity.playing("Type /ping"))
+                .enableIntents(GatewayIntent.GUILD_PRESENCES)
+                .enableIntents(GatewayIntent.GUILD_MESSAGES)
+                .enableCache(CacheFlag.ONLINE_STATUS)
                 .build();
 
         // Just making sure that guild runs at the right time
@@ -52,9 +58,13 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] message = e.getMessage().getContentRaw().trim().split(" ");
 
         if(message[0].equals("!add")) {
-            tasks.add(new Task(message[1], Long.parseLong(message[2]), e.getAuthor(), e));
+            tasks.add(new Task(message[1], Long.parseLong(message[2]), e.getAuthor(), e.getMember(), e));
             e.getChannel().sendMessage("I'll remind you about \"" + tasks.get(tasks.size()-1).getText() + "\" in " + tasks.get(tasks.size()-1).getTime() + " (trolling, i can't remind anyone about anything yet :dying:)").queue();
             tasks.get(tasks.size()-1).start();
+        } else if(message[0].equals("!list")) {
+            for(int i = 0; i < tasks.size(); i++) {
+
+            }
         }
     }
 }
