@@ -51,10 +51,11 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     Integer.parseInt(temp[0]);
                     Integer.parseInt(temp[1]);
                     long needed;
+                    long val;
                     try {
                         String totS = message[3].trim().toLowerCase(Locale.ROOT);
                         char finalChar = totS.charAt(totS.length()-1);
-                        long val = Long.parseLong(totS.substring(0, totS.length() - 1));
+                        val = Long.parseLong(totS.substring(0, totS.length() - 1));
                         switch(finalChar){
                             case 's' -> needed = val *1000;
                             case 'm' -> needed = val *60000;
@@ -68,8 +69,8 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     if (convertTime(message[2]) < 0) {
                         e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                     } else {
-                        tasks.add(new Task(message[1], convertTime(message[2]), needed, e.getAuthor(), e.getMember(), e));
-                        e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
+                        tasks.add(new Task(message[1].trim(), convertTime(message[2]), needed, e.getAuthor(), e.getMember(), e, val));
+                        e.getChannel().sendMessage("I'll remind you about \"" + message[1].trim() + "\" at " + message[2].trim()).queue();
                         tasks.get(tasks.size() - 1).start();
                     }
                 } catch (NumberFormatException x) {
