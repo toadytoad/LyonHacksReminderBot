@@ -16,6 +16,7 @@ import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
     public static ArrayList<Task> tasks = new ArrayList<Task>();
+    public static Tamagotchi dino = new Tamagotchi();
 
     public static void main(String[] args) throws LoginException {
         if (args.length < 1) {
@@ -113,7 +114,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 "We will be gifting you with a tamagotchi! (Whichhh is currently non-existent :dying:) To keep your beloved pet happy, all you have to do is follow your schedule instead of procrastinating on discord! But if you choose to rebel and waste time on discord, your tamagotchi will get sad :(\n" +
                 "\n" +
                 "**Commands**\n" +
-                "- **!add [task] [time]** - add a task\n" +
+                "- **!add, [task], [time]** - add a task\n" +
                 "- **!list** - lists your tasks in dms\n" +
                 "- **!help** - to print this message again for whatever reason");
 

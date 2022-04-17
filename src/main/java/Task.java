@@ -23,7 +23,9 @@ public class Task extends Thread { //TODO implement comparable based on time.
         user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Hey there! Here to remind you about " + text)).queue();
         wait(60000);
         if(member.getOnlineStatus() == OnlineStatus.ONLINE) {
-            user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Oi! Stop trolling. You're still online :rage: Go and do " + text)).queue();
+            user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(false))).queue();
+        } else {
+            user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(true))).queue();
         }
     }
 
