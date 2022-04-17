@@ -43,6 +43,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
         String[] message = e.getMessage().getContentRaw().trim().split(",");
+        String endTime = "";
 
         switch (message[0]) {
             case "!add":
@@ -57,8 +58,17 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                         char finalChar = totS.charAt(totS.length()-1);
                         val = Long.parseLong(totS.substring(0, totS.length() - 1));
                         switch(finalChar){
-                            case 'm' -> needed = val *60000;
-                            case 'h' -> needed = val *3600000;
+                            case 'm' -> {
+                                needed = val *60000;
+                                String mini;
+                                if((mini = ("" + ((Long.parseLong(temp[1]) + val) % 60))).length() == 1)
+                                    mini = "0" + mini;
+                                endTime = (Long.parseLong(temp[0]) + (Long.parseLong(temp[1]) + val) / 60) + ":" + mini;
+                            }
+                            case 'h' -> {
+                                needed = val *3600000;
+                                endTime = (Long.parseLong(temp[0]) + val) + ":" + temp[1];
+                            }
                             default -> throw new IllegalArgumentException();
                         }
                     } catch (IllegalArgumentException x){
@@ -68,7 +78,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     if (convertTime(message[2]) < 0) {
                         e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                     } else {
-                        Task current = new Task(message[1].trim(), convertTime(message[2]), message[2], needed, e.getAuthor(), e.getMember(), e, needed);
+                        Task current = new Task(message[1].trim(), convertTime(message[2]), message[2], endTime, needed, e.getAuthor(), e.getMember(), e, needed);
                         if(!map.containsKey(current.user)){
                             map.put(current.user, new ArrayList<>());
                         }
@@ -86,7 +96,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 if(map.containsKey(Objects.requireNonNull(e.getMember()).getUser()) && map.get(e.getAuthor()).size() > 0) {
                     StringBuilder list = new StringBuilder();
                     for (Task task : map.get(e.getMember().getUser())) {
-                        list.append("- ").append(task.text).append(", Time: ").append(task.writtenTime).append("\n");
+                        list.append("- ").append(task.text).append(", Time: ").append(task.writtenTime).append(" - ").append(task.endTime).append("\n");
                     }
                     e.getChannel().sendMessageEmbeds(list(list.toString())).queue();
                 } else {
