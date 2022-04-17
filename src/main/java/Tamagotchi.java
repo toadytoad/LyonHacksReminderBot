@@ -17,7 +17,7 @@ public class Tamagotchi {
 
         if(increase) {
             happy++;
-            title = "Your tamagotchi is happier!";
+            title = "Your tamagotchi is feeling happier!";
             if(happy < 0) {
                 response = "Your tamagotchi is feeling a bit better, but its still a bit mentally traumatized. Complete more tasks to make it feel better!\n\n**Successful task amount needed:** " + Math.abs(happy);
                 image = sorta;

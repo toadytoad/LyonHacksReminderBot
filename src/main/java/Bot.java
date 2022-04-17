@@ -13,7 +13,7 @@ import javax.security.auth.login.LoginException;
 import java.time.LocalTime;
 import java.util.*;
 
-public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
+public class Bot extends ListenerAdapter {
     public static Tamagotchi dino = new Tamagotchi();
     public static Map<User, List<Task>> map = new HashMap<>();
     public static void main(String[] args) throws LoginException {
@@ -42,48 +42,52 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
 
     @Override
     public void onMessageReceived(MessageReceivedEvent e) {
-        String[] message = e.getMessage().getContentRaw().trim().split(",");
+        String[] message = e.getMessage().getContentRaw().trim().split(" ", -1);
         String endTime = "";
 
         switch (message[0]) {
-            case "!add":
+            case "!add" -> {
                 try {
-                    String[] temp = message[2].trim().split(":");
+                    String[] temp = message[message.length-2].trim().split(":");
                     Integer.parseInt(temp[0]);
                     Integer.parseInt(temp[1]);
                     long needed;
                     long val;
                     try {
-                        String totS = message[3].trim().toLowerCase(Locale.ROOT);
-                        char finalChar = totS.charAt(totS.length()-1);
+                        String totS = message[message.length-1].trim().toLowerCase(Locale.ROOT);
+                        char finalChar = totS.charAt(totS.length() - 1);
                         val = Long.parseLong(totS.substring(0, totS.length() - 1));
-                        switch(finalChar){
+                        switch (finalChar) {
                             case 'm' -> {
-                                needed = val *60000;
+                                needed = val * 60000;
                                 String mini;
                                 if((mini = ("" + ((Long.parseLong(temp[1]) + val) % 60))).length() == 1)
                                     mini = "0" + mini;
                                 endTime = (Long.parseLong(temp[0]) + (Long.parseLong(temp[1]) + val) / 60) + ":" + mini;
                             }
                             case 'h' -> {
-                                needed = val *3600000;
+                                needed = val * 3600000;
                                 endTime = (Long.parseLong(temp[0]) + val) + ":" + temp[1];
                             }
                             default -> throw new IllegalArgumentException();
                         }
-                    } catch (IllegalArgumentException x){
+                    } catch (IllegalArgumentException x) {
                         e.getChannel().sendMessage("Please enter a valid total amount of time needed. [m, h]").queue();
                         return;
                     }
-                    if (convertTime(message[2]) < 0) {
+                    if (convertTime(message[message.length-2]) <= 0) {
                         e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                     } else {
-                        Task current = new Task(message[1].trim(), convertTime(message[2]), message[2], endTime, needed, e.getAuthor(), e.getMember(), e, needed);
-                        if(!map.containsKey(current.user)){
+                        StringBuilder taskDesc = new StringBuilder();
+                        for(int i = 1; i<message.length-2; i++){
+                            taskDesc.append(message[i]).append(' ');
+                        }
+                        Task current = new Task(taskDesc.toString().trim(), convertTime(message[message.length-2]), message[message.length-2], endTime, e.getAuthor(), e.getMember(), e, needed);
+                        if (!map.containsKey(current.user)) {
                             map.put(current.user, new ArrayList<>());
                         }
                         map.get(current.user).add(current);
-                        e.getChannel().sendMessage("I'll remind you about \"" + message[1].trim() + "\" at " + message[2].trim()).queue();
+                        e.getChannel().sendMessage("I'll remind you about \"" + taskDesc.toString().trim() + "\" at " + message[message.length-2].trim()).queue();
                         current.start();
                     }
                 } catch (NumberFormatException x) {
@@ -91,9 +95,9 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 } catch (ArrayIndexOutOfBoundsException x) {
                     e.getChannel().sendMessage("Invalid command, please use `!add, [reminder], [time start], [time needed]`").queue();
                 }
-                break;
-            case "!list":
-                if(map.containsKey(Objects.requireNonNull(e.getMember()).getUser()) && map.get(e.getAuthor()).size() > 0) {
+            }
+            case "!list" -> {
+                if (map.containsKey(Objects.requireNonNull(e.getMember()).getUser()) && map.get(e.getAuthor()).size() > 0) {
                     StringBuilder list = new StringBuilder();
                     for (Task task : map.get(e.getMember().getUser())) {
                         list.append("- ").append(task.text).append(", Time: ").append(task.writtenTime).append(" - ").append(task.endTime).append("\n");
@@ -106,10 +110,34 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     eb.setImage("https://cdn.discordapp.com/attachments/965058497039437864/965085474559504514/dino.png");
                     e.getChannel().sendMessageEmbeds(eb.build()).queue();
                 }
-                break;
-            case "!help":
-                e.getChannel().sendMessageEmbeds(greeting()).queue();
-                break;
+            }
+            case "!help" -> e.getChannel().sendMessageEmbeds(greeting()).queue();
+            case "!remove" -> {
+                User usr;
+                try {
+                    usr = Objects.requireNonNull(e.getMember()).getUser();
+                } catch(NullPointerException x) {
+                    e.getChannel().sendMessage("Oops! Something went wrong, the user does not seem to exist!").queue();
+                    return;
+                }
+
+                List<Task> taskList = map.get(usr);
+                if(message.length<2){
+                    e.getChannel().sendMessage("Invalid command, please use `!remove ").queue();
+                }
+                StringBuilder taskDesc = new StringBuilder();
+                for(int i = 1; i<message.length; i++) taskDesc.append(message[i]).append(" ");
+                String s = taskDesc.toString().trim();
+                for(int i = 0; i<taskList.size(); i++){
+                    if(taskList.get(i).text.equals(s)){
+                        taskList.get(i).interrupt();
+                        taskList.remove(i);
+                        e.getChannel().sendMessage("Successfully removed your task!").queue();
+                        return;
+                    }
+                }
+                e.getChannel().sendMessage("The task you wanted to remove was not found. Please check your task name and try again.").queue();
+            }
         }
     }
 
@@ -118,13 +146,13 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         String[] t1 = currentTime.split(":");
         t1[2] = t1[2].substring(0, 2);
 
-        long hours1 = Long.parseLong(t1[0]) * 360000;
+        long hours1 = Long.parseLong(t1[0]) * 3600000;
         long mins1 = Long.parseLong(t1[1]) * 60000;
         long secs1 = Long.parseLong(t1[2]) * 1000;
 
         String[] t2 = time.trim().split(":");
 
-        long hours2 = Long.parseLong(t2[0]) * 360000;
+        long hours2 = Long.parseLong(t2[0]) * 3600000;
         long mins2 = Long.parseLong(t2[1]) * 60000;
 
         return hours2 + mins2 - hours1 - mins1 - secs1;
@@ -144,6 +172,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                         **Commands**
                         - **!add [task] [time start] [time needed][m/h]** - add a task (m = minutes, h = hours)
                         - **!list** - lists your tasks
+                        - **!remove [task]** - removes a task
                         - **!help** - to print this message again for whatever reason""");
 
         return eb.build();

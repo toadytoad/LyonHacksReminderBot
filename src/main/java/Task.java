@@ -8,19 +8,17 @@ public class Task extends Thread {
     long time;
     String writtenTime;
     String endTime;
-    long total;
     User user;
     Member member;
     long amount;
     int counter = 50000;
     MessageReceivedEvent channel;
 
-    public Task(String text, long time, String writtenTime, String endTime, long total, User user, Member member, MessageReceivedEvent e, long amount) {
+    public Task(String text, long time, String writtenTime, String endTime, User user, Member member, MessageReceivedEvent e, long amount) {
         this.text = text;
         this.time = time;
         this.writtenTime = writtenTime;
         this.endTime = endTime;
-        this.total = total;
         this.user = user;
         this.member = member;
         this.amount = amount;
