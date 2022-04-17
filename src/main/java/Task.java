@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class Task extends Thread {
     String text;
     long time;
+    String writtenTime;
     long total;
     User user;
     Member member;
@@ -13,9 +14,10 @@ public class Task extends Thread {
     int counter = 30000;
     MessageReceivedEvent channel;
 
-    public Task(String text, long time, long total, User user, Member member, MessageReceivedEvent e, long amount) {
+    public Task(String text, long time, String writtenTime, long total, User user, Member member, MessageReceivedEvent e, long amount) {
         this.text = text;
         this.time = time;
+        this.writtenTime = writtenTime;
         this.total = total;
         this.user = user;
         this.member = member;
@@ -25,7 +27,7 @@ public class Task extends Thread {
 
     synchronized void ping() throws InterruptedException { //TODO Constantly read and count the amount of time the user has been online. At the end upload an image.
         wait(time);
-        user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Hey there! Here to remind you about " + text)).queue();
+        user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Hey there! Here to remind you about \"" + text + "\"")).queue();
         wait(counter);
         while(counter < amount) {
             if (member.getOnlineStatus() == OnlineStatus.ONLINE) {
@@ -34,7 +36,6 @@ public class Task extends Thread {
             }
             wait(1000);
             counter+=1000;
-            System.out.println(counter);
         }
         user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(true))).queue();
     }
@@ -42,6 +43,7 @@ public class Task extends Thread {
     public void run() {
         try {
             ping();
+            Bot.map.get(this.user).remove(this);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

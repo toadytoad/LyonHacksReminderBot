@@ -7,15 +7,15 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.entities.User;
 
 import javax.security.auth.login.LoginException;
 import java.time.LocalTime;
 import java.util.*;
 
 public class Bot extends ListenerAdapter { //TODO add a priority queue with Task as the object, and start a thread which constantly reads from this queue and checks once the head of the queue is less than the current time, at which point send the message and remove it from the queue.
-    public static ArrayList<Task> tasks = new ArrayList<>();
     public static Tamagotchi dino = new Tamagotchi();
-
+    public static Map<User, List<Task>> map = new HashMap<>();
     public static void main(String[] args) throws LoginException {
         if (args.length < 1) {
             System.out.println("You have to provide a token as first argument!");
@@ -68,9 +68,13 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                     if (convertTime(message[2]) < 0) {
                         e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                     } else {
-                        tasks.add(new Task(message[1].trim(), convertTime(message[2]), needed, e.getAuthor(), e.getMember(), e, needed));
+                        Task current = new Task(message[1].trim(), convertTime(message[2]), message[2], needed, e.getAuthor(), e.getMember(), e, needed);
+                        if(!map.containsKey(current.user)){
+                            map.put(current.user, new ArrayList<>());
+                        }
+                        map.get(current.user).add(current);
                         e.getChannel().sendMessage("I'll remind you about \"" + message[1].trim() + "\" at " + message[2].trim()).queue();
-                        tasks.get(tasks.size() - 1).start();
+                        current.start();
                     }
                 } catch (NumberFormatException x) {
                     e.getChannel().sendMessage("Please enter a proper time in 24 hour format").queue();
@@ -79,11 +83,19 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 }
                 break;
             case "!list":
-                StringBuilder list = new StringBuilder();
-                for (Task task : tasks) {
-                    list.append("- ").append(task.text).append(", Time: ").append(task.time).append("\n");
+                if(map.containsKey(Objects.requireNonNull(e.getMember()).getUser()) && map.get(e.getAuthor()).size() > 0) {
+                    StringBuilder list = new StringBuilder();
+                    for (Task task : map.get(e.getMember().getUser())) {
+                        list.append("- ").append(task.text).append(", Time: ").append(task.writtenTime).append("\n");
+                    }
+                    e.getChannel().sendMessageEmbeds(list(list.toString())).queue();
+                } else {
+                    EmbedBuilder eb = new EmbedBuilder();
+                    eb.setTitle("You have no tasks to do!");
+                    eb.setDescription("Use !add to add some tasks.");
+                    eb.setImage("https://cdn.discordapp.com/attachments/965058497039437864/965085474559504514/dino.png");
+                    e.getChannel().sendMessageEmbeds(eb.build()).queue();
                 }
-                e.getChannel().sendMessageEmbeds(list(list.toString())).queue();
                 break;
             case "!help":
                 e.getChannel().sendMessageEmbeds(greeting()).queue();
@@ -116,14 +128,12 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         eb.setFooter("Have fun :D");
         eb.setDescription(
                 """
-                        (makeshift description, this will def not be the real description)
-
                         Here to help you out with your incurable addiction to Discord by reminding you when to stop using it ;)
-                        We will be gifting you with a tamagotchi! (Whichhh is currently non-existent :dying:) To keep your beloved pet happy, all you have to do is follow your schedule instead of procrastinating on discord! But if you choose to rebel and waste time on discord, your tamagotchi will get sad :(
+                        We will be gifting you with a tamagotchi! To keep your beloved pet happy, all you have to do is follow your schedule instead of procrastinating on discord! But if you choose to rebel and waste time on discord, your tamagotchi will get sad :(
 
                         **Commands**
-                        - **!add [task] [time start] [time needed][m/h]** - add a task
-                        - **!list** - lists your tasks in dms
+                        - **!add [task] [time start] [time needed][m/h]** - add a task (m = minutes, h = hours)
+                        - **!list** - lists your tasks
                         - **!help** - to print this message again for whatever reason""");
 
         return eb.build();
