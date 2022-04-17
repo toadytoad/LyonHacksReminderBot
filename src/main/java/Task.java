@@ -10,8 +10,8 @@ public class Task extends Thread {
     User user;
     Member member;
     long amount;
+    int counter = 30000;
     MessageReceivedEvent channel;
-    int counter = 0;
 
     public Task(String text, long time, long total, User user, Member member, MessageReceivedEvent e, long amount) {
         this.text = text;
@@ -24,22 +24,19 @@ public class Task extends Thread {
     }
 
     synchronized void ping() throws InterruptedException { //TODO Constantly read and count the amount of time the user has been online. At the end upload an image.
-        counter = 0;
         wait(time);
         user.openPrivateChannel().flatMap(channel -> channel.sendMessage("Hey there! Here to remind you about " + text)).queue();
-        wait(60000);
-        if (member.getOnlineStatus() == OnlineStatus.ONLINE && counter + 60000 < amount) {
-            user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(false))).queue();
-        } else if(counter >= amount) {
-            user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(true))).queue();
-        }
-    }
-
-    synchronized void counter() throws InterruptedException {
-        while(counter + 60000 < amount) {
+        wait(counter);
+        while(counter < amount) {
+            if (member.getOnlineStatus() == OnlineStatus.ONLINE) {
+                user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(false))).queue();
+                return;
+            }
             wait(1000);
-            counter++;
+            counter+=1000;
+            System.out.println(counter);
         }
+        user.openPrivateChannel().flatMap(channel -> channel.sendMessageEmbeds(Bot.dino.tamagotchi(true))).queue();
     }
 
     public void run() {

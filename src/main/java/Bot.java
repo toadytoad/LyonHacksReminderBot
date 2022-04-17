@@ -25,7 +25,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         // We don't need any intents for this bot. Slash commands work without any intents!
         JDA jda = JDABuilder.createDefault(args[0])
                 .addEventListeners(new Bot())
-                .setActivity(Activity.playing("Type /ping"))
+                .setActivity(Activity.playing("Type !help"))
                 .enableIntents(GatewayIntent.GUILD_PRESENCES)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
                 .enableCache(CacheFlag.ONLINE_STATUS)
@@ -57,19 +57,18 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                         char finalChar = totS.charAt(totS.length()-1);
                         val = Long.parseLong(totS.substring(0, totS.length() - 1));
                         switch(finalChar){
-                            case 's' -> needed = val *1000;
                             case 'm' -> needed = val *60000;
                             case 'h' -> needed = val *3600000;
                             default -> throw new IllegalArgumentException();
                         }
                     } catch (IllegalArgumentException x){
-                        e.getChannel().sendMessage("Please enter a valid total amount of time needed. [s, m, h]").queue();
+                        e.getChannel().sendMessage("Please enter a valid total amount of time needed. [m, h]").queue();
                         return;
                     }
                     if (convertTime(message[2]) < 0) {
                         e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                     } else {
-                        tasks.add(new Task(message[1].trim(), convertTime(message[2]), needed, e.getAuthor(), e.getMember(), e, val));
+                        tasks.add(new Task(message[1].trim(), convertTime(message[2]), needed, e.getAuthor(), e.getMember(), e, needed));
                         e.getChannel().sendMessage("I'll remind you about \"" + message[1].trim() + "\" at " + message[2].trim()).queue();
                         tasks.get(tasks.size() - 1).start();
                     }
@@ -123,7 +122,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                         We will be gifting you with a tamagotchi! (Whichhh is currently non-existent :dying:) To keep your beloved pet happy, all you have to do is follow your schedule instead of procrastinating on discord! But if you choose to rebel and waste time on discord, your tamagotchi will get sad :(
 
                         **Commands**
-                        - **!add [task] [time start] [time needed][s/m/h]** - add a task
+                        - **!add [task] [time start] [time needed][m/h]** - add a task
                         - **!list** - lists your tasks in dms
                         - **!help** - to print this message again for whatever reason""");
 
