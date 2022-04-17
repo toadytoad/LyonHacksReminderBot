@@ -26,7 +26,7 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         // We don't need any intents for this bot. Slash commands work without any intents!
         JDA jda = JDABuilder.createDefault(args[0])
                 .addEventListeners(new Bot())
-                .setActivity(Activity.playing("Type /ping"))
+                .setActivity(Activity.playing("Type !help"))
                 .enableIntents(GatewayIntent.GUILD_PRESENCES)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
                 .enableCache(CacheFlag.ONLINE_STATUS)
@@ -38,10 +38,6 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        Guild g = jda.getGuildById("964587882771791985");
-        g.upsertCommand("ping", "Calculate ping of the bot").queue();
-        g.upsertCommand("add", "DM string in certain amount of milliseconds").queue();
     }
 
     @Override
@@ -69,8 +65,8 @@ public class Bot extends ListenerAdapter { //TODO add a priority queue with Task
                 if (convertTime(message[2]) < 0) {
                     e.getChannel().sendMessage("Please enter a time that is after the current time in 24 hour format!").queue();
                 } else {
-                    tasks.add(new Task(message[1], convertTime(message[2]), e.getAuthor(), e.getMember(), e));
-                    e.getChannel().sendMessage("I'll remind you about \"" + message[1] + "\" at " + message[2]).queue();
+                    tasks.add(new Task(message[1].trim(), convertTime(message[2]), e.getAuthor(), e.getMember(), e));
+                    e.getChannel().sendMessage("I'll remind you about \"" + message[1].trim() + "\" at " + message[2].trim()).queue();
                     tasks.get(tasks.size() - 1).start();
                 }
             } catch(NumberFormatException x) {
